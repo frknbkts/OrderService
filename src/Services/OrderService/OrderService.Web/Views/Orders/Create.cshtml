@@ -1,0 +1,155 @@
+@model OrderService.Application.DTOs.CreateOrderDto
+
+@{
+    ViewData["Title"] = "Create Order";
+    
+    // Sample products for demonstration
+    var products = new[]
+    {
+        new { Id = Guid.NewGuid(), Name = "iPhone 15", Price = 999.99m },
+        new { Id = Guid.NewGuid(), Name = "Samsung Galaxy S24", Price = 899.99m },
+        new { Id = Guid.NewGuid(), Name = "MacBook Pro", Price = 1999.99m },
+        new { Id = Guid.NewGuid(), Name = "AirPods Pro", Price = 249.99m },
+        new { Id = Guid.NewGuid(), Name = "iPad Air", Price = 599.99m }
+    };
+}
+
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h1>Create Order</h1>
+    <a asp-action="Index" class="btn btn-secondary">
+        <i class="bi bi-arrow-left me-1"></i>Back to List
+    </a>
+</div>
+
+<form asp-action="Create" id="createOrderForm">
+    <div asp-validation-summary="ModelOnly" class="alert alert-danger" role="alert"></div>
+    <input type="hidden" asp-for="UserId" />
+
+    <div class="row">
+        <div class="col-md-8">
+            <div class="card mb-4">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <h5 class="card-title mb-0">Order Items</h5>
+                    <button type="button" class="btn btn-sm btn-primary" onclick="addOrderItem()">
+                        <i class="bi bi-plus-circle me-1"></i>Add Item
+                    </button>
+                </div>
+                <div class="card-body">
+                    <div id="orderItems">
+                        <!-- Order items will be added here dynamically -->
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-4">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="card-title mb-0">Shipping Address</h5>
+                </div>
+                <div class="card-body">
+                    <div class="mb-3">
+                        <label asp-for="ShippingAddress.Street" class="form-label">Street</label>
+                        <input asp-for="ShippingAddress.Street" class="form-control" />
+                        <span asp-validation-for="ShippingAddress.Street" class="text-danger"></span>
+                    </div>
+
+                    <div class="mb-3">
+                        <label asp-for="ShippingAddress.City" class="form-label">City</label>
+                        <input asp-for="ShippingAddress.City" class="form-control" />
+                        <span asp-validation-for="ShippingAddress.City" class="text-danger"></span>
+                    </div>
+
+                    <div class="mb-3">
+                        <label asp-for="ShippingAddress.State" class="form-label">State</label>
+                        <input asp-for="ShippingAddress.State" class="form-control" />
+                        <span asp-validation-for="ShippingAddress.State" class="text-danger"></span>
+                    </div>
+
+                    <div class="mb-3">
+                        <label asp-for="ShippingAddress.Country" class="form-label">Country</label>
+                        <input asp-for="ShippingAddress.Country" class="form-control" />
+                        <span asp-validation-for="ShippingAddress.Country" class="text-danger"></span>
+                    </div>
+
+                    <div class="mb-3">
+                        <label asp-for="ShippingAddress.ZipCode" class="form-label">Zip Code</label>
+                        <input asp-for="ShippingAddress.ZipCode" class="form-control" />
+                        <span asp-validation-for="ShippingAddress.ZipCode" class="text-danger"></span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="d-grid mt-4">
+                <button type="submit" class="btn btn-primary">
+                    <i class="bi bi-check-circle me-1"></i>Create Order
+                </button>
+            </div>
+        </div>
+    </div>
+</form>
+
+@section Scripts {
+    @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
+
+    <script>
+        let itemIndex = 0;
+        const products = @Html.Raw(Json.Serialize(products));
+
+        function addOrderItem() {
+            const template = `
+                <div class="order-item border rounded p-3 mb-3">
+                    <div class="d-flex justify-content-between align-items-center mb-3">
+                        <h6 class="mb-0">Order Item #${itemIndex + 1}</h6>
+                        <button type="button" class="btn btn-sm btn-danger" onclick="removeOrderItem(this)">
+                            <i class="bi bi-trash"></i>
+                        </button>
+                    </div>
+                    <div class="row">
+                        <div class="col-md-12 mb-3">
+                            <label class="form-label">Product</label>
+                            <select class="form-select" onchange="updateProductDetails(this, ${itemIndex})" required>
+                                <option value="">Select a product</option>
+                                ${products.map(p => `<option value="${p.id}" data-price="${p.price}">${p.name}</option>`).join('')}
+                            </select>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label">Unit Price</label>
+                            <input type="number" step="0.01" name="OrderItems[${itemIndex}].UnitPrice" class="form-control" readonly required />
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label">Quantity</label>
+                            <input type="number" name="OrderItems[${itemIndex}].Quantity" class="form-control" min="1" value="1" required />
+                        </div>
+                    </div>
+                    <input type="hidden" name="OrderItems[${itemIndex}].ProductId" />
+                    <input type="hidden" name="OrderItems[${itemIndex}].ProductName" />
+                </div>
+            `;
+
+            document.getElementById('orderItems').insertAdjacentHTML('beforeend', template);
+            itemIndex++;
+        }
+
+        function removeOrderItem(button) {
+            button.closest('.order-item').remove();
+        }
+
+        function updateProductDetails(select, index) {
+            const container = select.closest('.order-item');
+            const selectedOption = select.options[select.selectedIndex];
+            const product = products.find(p => p.id === select.value);
+            
+            if (product) {
+                container.querySelector(`input[name="OrderItems[${index}].ProductId"]`).value = product.id;
+                container.querySelector(`input[name="OrderItems[${index}].ProductName"]`).value = product.name;
+                container.querySelector(`input[name="OrderItems[${index}].UnitPrice"]`).value = product.price;
+            }
+        }
+
+        // Add first item by default
+        document.addEventListener('DOMContentLoaded', function() {
+            addOrderItem();
+        });
+    </script>
+} 

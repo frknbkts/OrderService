@@ -1,0 +1,90 @@
+@model OrderService.Application.DTOs.OrderDto
+
+@{
+    ViewData["Title"] = "Order Details";
+}
+
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h1>Order Details</h1>
+    <a asp-action="Index" class="btn btn-secondary">
+        <i class="bi bi-arrow-left me-1"></i>Back to List
+    </a>
+</div>
+
+<div class="row">
+    <div class="col-md-8">
+        <div class="card mb-4">
+            <div class="card-header">
+                <h5 class="card-title mb-0">Order Items</h5>
+            </div>
+            <div class="card-body p-0">
+                <div class="table-responsive">
+                    <table class="table table-hover mb-0">
+                        <thead>
+                            <tr>
+                                <th>Product</th>
+                                <th class="text-center">Quantity</th>
+                                <th class="text-end">Unit Price</th>
+                                <th class="text-end">Total</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var item in Model.OrderItems)
+                            {
+                                <tr>
+                                    <td>@item.ProductName</td>
+                                    <td class="text-center">@item.Quantity</td>
+                                    <td class="text-end">$@item.UnitPrice.ToString("N2")</td>
+                                    <td class="text-end">$@((item.UnitPrice * item.Quantity).ToString("N2"))</td>
+                                </tr>
+                            }
+                        </tbody>
+                        <tfoot>
+                            <tr>
+                                <td colspan="3" class="text-end"><strong>Total Amount:</strong></td>
+                                <td class="text-end"><strong>$@Model.TotalAmount.ToString("N2")</strong></td>
+                            </tr>
+                        </tfoot>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-4">
+        <div class="card mb-4">
+            <div class="card-header">
+                <h5 class="card-title mb-0">Order Information</h5>
+            </div>
+            <div class="card-body">
+                <dl class="row mb-0">
+                    <dt class="col-sm-5">Order Number:</dt>
+                    <dd class="col-sm-7">@Model.OrderNumber</dd>
+
+                    <dt class="col-sm-5">Order Date:</dt>
+                    <dd class="col-sm-7">@Model.OrderDate.ToString("dd/MM/yyyy HH:mm")</dd>
+
+                    <dt class="col-sm-5">Status:</dt>
+                    <dd class="col-sm-7">
+                        <span class="badge status-@Model.Status.ToString().ToLower()">
+                            @Model.Status
+                        </span>
+                    </dd>
+                </dl>
+            </div>
+        </div>
+
+        <div class="card">
+            <div class="card-header">
+                <h5 class="card-title mb-0">Shipping Address</h5>
+            </div>
+            <div class="card-body">
+                <address class="mb-0">
+                    @Model.ShippingAddress.Street<br />
+                    @Model.ShippingAddress.City, @Model.ShippingAddress.State @Model.ShippingAddress.ZipCode<br />
+                    @Model.ShippingAddress.Country
+                </address>
+            </div>
+        </div>
+    </div>
+</div> 
